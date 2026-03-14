@@ -37,3 +37,7 @@ stream:
   send_ecg: true
   send_rr: true
   send_hr: true
+
+visualization:
+  enabled: true
+  route: "/"
