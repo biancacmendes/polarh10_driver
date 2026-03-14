@@ -10,13 +10,41 @@ VIS_PAGE = """
 <!DOCTYPE html>
 <html>
 <head>
-<title>Polar H10 ECG</title>
+<title>Polar H10 Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+    font-family: Arial;
+}
+
+#metrics{
+    margin-bottom:20px;
+}
+
+.metric{
+    display:inline-block;
+    margin-right:30px;
+    font-size:18px;
+}
+</style>
+
 </head>
 
 <body>
 
-<h2>Polar H10 ECG Stream</h2>
+<h2>Polar H10 Physiological Monitor</h2>
+
+<div id="metrics">
+
+<div class="metric">HR: <span id="hr">--</span></div>
+<div class="metric">RR: <span id="rr">--</span></div>
+<div class="metric">RMSSD: <span id="rmssd">--</span></div>
+<div class="metric">SDNN: <span id="sdnn">--</span></div>
+<div class="metric">pNN50: <span id="pnn50">--</span></div>
+<div class="metric">LF/HF: <span id="lfhf">--</span></div>
+
+</div>
 
 <canvas id="chart" width="1000" height="400"></canvas>
 
@@ -45,26 +73,51 @@ const chart = new Chart(ctx, {
 
 const ws = new WebSocket("ws://" + location.host + "/stream");
 
-ws.onmessage = function(event) {
+ws.onmessage = function(event){
 
     const packet = JSON.parse(event.data);
 
     if(packet.type !== "ecg")
         return;
 
-    packet.samples.forEach(v => {
+    if(packet.samples){
 
-        chart.data.labels.push("");
-        chart.data.datasets[0].data.push(v);
+        packet.samples.forEach(v => {
 
-        if(chart.data.datasets[0].data.length > 800){
-            chart.data.labels.shift();
-            chart.data.datasets[0].data.shift();
-        }
+            chart.data.labels.push("");
+            chart.data.datasets[0].data.push(v);
 
-    });
+            if(chart.data.datasets[0].data.length > 800){
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
 
-    chart.update();
+        });
+
+        chart.update();
+    }
+
+    if(packet.metrics){
+
+        if(packet.metrics.hr !== undefined)
+            document.getElementById("hr").innerText = packet.metrics.hr.toFixed(1);
+
+        if(packet.metrics.rr !== undefined)
+            document.getElementById("rr").innerText = packet.metrics.rr.toFixed(3);
+
+        if(packet.metrics.rmssd !== undefined)
+            document.getElementById("rmssd").innerText = packet.metrics.rmssd.toFixed(2);
+
+        if(packet.metrics.sdnn !== undefined)
+            document.getElementById("sdnn").innerText = packet.metrics.sdnn.toFixed(2);
+
+        if(packet.metrics.pnn50 !== undefined)
+            document.getElementById("pnn50").innerText = packet.metrics.pnn50.toFixed(2);
+
+        if(packet.metrics.lf_hf !== undefined)
+            document.getElementById("lfhf").innerText = packet.metrics.lf_hf.toFixed(2);
+    }
+
 };
 
 </script>
@@ -109,7 +162,11 @@ class WebSocketGatewayDashboard:
                     await asyncio.sleep(1)
 
             except Exception:
-                self.clients.remove(ws)
+
+                if ws in self.clients:
+                    self.clients.remove(ws)
+
+                logging.info("Client disconnected")
 
     async def broadcast(self, data):
 
@@ -119,7 +176,9 @@ class WebSocketGatewayDashboard:
                 await client.send_json(data)
 
             except Exception:
-                self.clients.remove(client)
+
+                if client in self.clients:
+                    self.clients.remove(client)
 
     async def data_loop(self):
 
@@ -136,6 +195,7 @@ class WebSocketGatewayDashboard:
         asyncio.create_task(self.data_loop())
 
         config = uvicorn.Config(self.app, host=self.host, port=self.port)
+
         server = uvicorn.Server(config)
 
         await server.serve()
