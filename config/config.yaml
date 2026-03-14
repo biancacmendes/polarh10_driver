@@ -38,6 +38,30 @@ stream:
   send_rr: true
   send_hr: true
 
+# Enable an HTML page for data visualization (prototype!)
 visualization:
   enabled: true
   route: "/"
+
+# HRV metrics configuration
+metrics:
+
+  rr: true # RR interval between consecutive R-peaks.
+
+  hr: true # Instantaneous heart rate derived from RR.
+
+  rmssd: true  # Short-term HRV metric commonly used in streaming analysis.
+
+  sdnn: true   # Not recommended for strict online interpretation.
+               # SDNN is formally defined over longer windows (typically ≥5 minutes).
+               # Real-time values should be considered approximate.
+               # Recommended to compute offline for clinical accuracy.
+
+  pnn50: true  # Not recommended for online interpretation.
+               # Highly dependent on window length and unstable with small RR buffers.
+               # Offline processing over longer segments is recommended.
+
+  lf_hf: false # Not recommended for online calculation.
+               # Requires spectral estimation over a stable RR series.
+               # Computationally heavier and unreliable with short windows.
+               # Strongly recommended to compute offline.
