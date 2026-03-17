@@ -38,6 +38,7 @@ stream:
   send_rr: true
   send_hr: true
 
+# Enable an HTML page for data visualization (prototype!)
 visualization:
   enabled: true
   route: "/"
