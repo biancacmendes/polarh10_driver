@@ -6,7 +6,32 @@ from fastapi.responses import HTMLResponse
 import uvicorn
 
 
-VIS_PAGE = """
+# =========================
+# Server configuration
+# =========================
+
+LOG_CLIENT_CONNECTED = "Client connected"
+LOG_CLIENT_DISCONNECTED = "Client disconnected"
+
+KEEP_ALIVE_INTERVAL_SEC = 1
+
+
+# =========================
+# WebSocket / UI constants
+# =========================
+
+PACKET_TYPE_ECG = "ecg"
+
+# Chart configuration
+MAX_CHART_POINTS = 800
+
+# Numeric formatting precision
+HR_PRECISION = 1
+RR_PRECISION = 3
+HRV_PRECISION = 2
+
+
+VIS_PAGE = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,19 +39,19 @@ VIS_PAGE = """
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{
+body{{
     font-family: Arial;
-}
+}}
 
-#metrics{
+#metrics{{
     margin-bottom:20px;
-}
+}}
 
-.metric{
+.metric{{
     display:inline-block;
     margin-right:30px;
     font-size:18px;
-}
+}}
 </style>
 
 </head>
@@ -50,73 +75,85 @@ body{
 
 <script>
 
+const PACKET_TYPE_ECG = "{PACKET_TYPE_ECG}";
+const MAX_POINTS = {MAX_CHART_POINTS};
+
+const HR_PRECISION = {HR_PRECISION};
+const RR_PRECISION = {RR_PRECISION};
+const HRV_PRECISION = {HRV_PRECISION};
+
+
 const ctx = document.getElementById('chart').getContext('2d');
 
-const chart = new Chart(ctx, {
+const chart = new Chart(ctx, {{
     type: 'line',
-    data: {
+    data: {{
         labels: [],
-        datasets: [{
+        datasets: [{{
             label: 'ECG',
             data: [],
             borderWidth: 1,
             pointRadius: 0
-        }]
-    },
-    options: {
+        }}]
+    }},
+    options: {{
         animation: false,
-        scales: {
-            x: { display: false }
-        }
-    }
-});
+        scales: {{
+            x: {{ display: false }}
+        }}
+    }}
+}};
 
 const ws = new WebSocket("ws://" + location.host + "/stream");
 
-ws.onmessage = function(event){
+ws.onmessage = function(event){{
 
     const packet = JSON.parse(event.data);
 
-    if(packet.type !== "ecg")
+    // Ignore non-ECG packets
+    if(packet.type !== PACKET_TYPE_ECG)
         return;
 
-    if(packet.samples){
+    // Append incoming samples to chart buffer
+    if(packet.samples){{
 
-        packet.samples.forEach(v => {
+        packet.samples.forEach(v => {{
 
             chart.data.labels.push("");
             chart.data.datasets[0].data.push(v);
 
-            if(chart.data.datasets[0].data.length > 800){
+            // Maintain fixed-size sliding window
+            if(chart.data.datasets[0].data.length > MAX_POINTS){{
                 chart.data.labels.shift();
                 chart.data.datasets[0].data.shift();
-            }
+            }}
 
-        });
+        }});
 
         chart.update();
-    }
+    }}
 
-    if(packet.metrics){
+    // Update HRV metrics display
+    if(packet.metrics){{
 
         if(packet.metrics.hr !== undefined)
-            document.getElementById("hr").innerText = packet.metrics.hr.toFixed(1);
+            document.getElementById("hr").innerText = packet.metrics.hr.toFixed(HR_PRECISION);
 
         if(packet.metrics.rr !== undefined)
-            document.getElementById("rr").innerText = packet.metrics.rr.toFixed(3);
+            document.getElementById("rr").innerText = packet.metrics.rr.toFixed(RR_PRECISION);
 
         if(packet.metrics.rmssd !== undefined)
-            document.getElementById("rmssd").innerText = packet.metrics.rmssd.toFixed(2);
+            document.getElementById("rmssd").innerText = packet.metrics.rmssd.toFixed(HRV_PRECISION);
 
         if(packet.metrics.sdnn !== undefined)
-            document.getElementById("sdnn").innerText = packet.metrics.sdnn.toFixed(2);
+            document.getElementById("sdnn").innerText = packet.metrics.sdnn.toFixed(HRV_PRECISION);
 
         if(packet.metrics.pnn50 !== undefined)
-            document.getElementById("pnn50").innerText = packet.metrics.pnn50.toFixed(2);
+            document.getElementById("pnn50").innerText = packet.metrics.pnn50.toFixed(HRV_PRECISION);
 
         if(packet.metrics.lf_hf !== undefined)
-            document.getElementById("lfhf").innerText = packet.metrics.lf_hf.toFixed(2);
-    }
+            document.getElementById("lfhf").innerText = packet.metrics.lf_hf.toFixed(HRV_PRECISION);
+    }}
 
 };
 
@@ -128,9 +165,19 @@ ws.onmessage = function(event){
 
 
 class WebSocketGatewayDashboard:
+    """WebSocket gateway with embedded dashboard for real-time ECG visualization."""
 
     def __init__(self, config, data_source):
+        """
+        Initialize gateway and dashboard server.
 
+        Parameters
+        ----------
+        config : ConfigParser or similar
+            Configuration source for server parameters.
+        data_source : object
+            Asynchronous provider exposing `get_packet()`.
+        """
         self.config = config
         self.data_source = data_source
 
@@ -144,58 +191,67 @@ class WebSocketGatewayDashboard:
         self._configure_routes()
 
     def _configure_routes(self):
+        """Register HTTP and WebSocket endpoints."""
 
         @self.app.get("/")
         async def dashboard():
+            """Serve HTML dashboard interface."""
             return HTMLResponse(VIS_PAGE)
 
         @self.app.websocket(self.path)
         async def websocket_endpoint(ws: WebSocket):
+            """
+            Handle WebSocket client lifecycle.
 
+            Keeps connection alive and manages active clients list.
+            """
             await ws.accept()
             self.clients.append(ws)
 
-            logging.info("Client connected")
+            logging.info(LOG_CLIENT_CONNECTED)
 
             try:
+                # Passive loop to maintain connection
                 while True:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(KEEP_ALIVE_INTERVAL_SEC)
 
             except Exception:
-
                 if ws in self.clients:
                     self.clients.remove(ws)
 
-                logging.info("Client disconnected")
+                logging.info(LOG_CLIENT_DISCONNECTED)
 
     async def broadcast(self, data):
+        """
+        Broadcast data to all connected clients.
 
+        Removes clients that fail during transmission.
+        """
         for client in list(self.clients):
-
             try:
                 await client.send_json(data)
 
             except Exception:
-
                 if client in self.clients:
                     self.clients.remove(client)
 
     async def data_loop(self):
-
+        """
+        Continuously fetch data from source and broadcast to clients.
+        """
         while True:
-
             packet = await self.data_source.get_packet()
-
             await self.broadcast(packet)
 
     async def start(self):
-
+        """
+        Start WebSocket server and background streaming loop.
+        """
         logging.info(f"Starting WebSocket server {self.host}:{self.port}")
 
         asyncio.create_task(self.data_loop())
 
         config = uvicorn.Config(self.app, host=self.host, port=self.port)
-
         server = uvicorn.Server(config)
 
         await server.serve()
