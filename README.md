@@ -85,20 +85,23 @@ wss://your-domain/ws
 
 ## Message Format
 
-Each message is a JSON object containing the latest computed physiological values.
+Each message is a JSON object containing a packet sequence number, a list of ECG samples, and the latest computed physiological metrics when available.
 
 ### Example
 
 ```json
 {
-  "timestamp": 1700000000.123,
-  "rr": 0.82,
-  "hr": 73.1,
-  "rmssd": 32.5,
-  "sdnn": 40.2,
-  "pnn50": 0.12
+  "seq": 1,
+  "samples": [123, 124, 121, 119],
+  "metrics": {
+    "rr": 0.82,
+    "hr": 73.1,
+    "rmssd": 32.5,
+    "sdnn": 40.2,
+    "pnn50": 0.12,
+    "lf_hf": 1.8
+  }
 }
-```
 
 ---
 
