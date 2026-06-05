@@ -1,6 +1,13 @@
 bluetooth:
-  device_address: "D6531279-6A6E-DDA8-C1D5-13D102E3EA9A"
+  device_address: "A0:9E:1A:EB:ED:38"
   scan_timeout: 10
+  connect_timeout: 75
+  pair: true
+  direct_address_fallback: true
+  device_name: "Polar H10"
+  prefer_direct_heart_rate: true
+  reset_pairing_on_start: true
+  unpair_on_close: true
 
 # Operating mode of the driver
 # modes:
@@ -34,6 +41,7 @@ gateway:
 
 stream:
   packet_size: 20
+  prefer_heart_rate: true
   send_ecg: true
   send_rr: true
   send_hr: true
