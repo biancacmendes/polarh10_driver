@@ -10,11 +10,7 @@ async def main():
     if not device:
         print("Device not found. Please ensure your Polar device is awake and nearby.")
         return
-    
-    # Prints de ID e endereço solicitados
-    print(f"Dispositivo encontrado: {device.name}")
-    print(f"Endereço/ID do dispositivo: {device.address}")
-    print("Conectando...")
+    print(f"Found {device.name}, connecting...")
 
     # 2. Connect and manage the device session
     async with PolarDevice(device) as polar_device:
