@@ -1,5 +1,6 @@
 bluetooth:
-  device_address: "D6531279-6A6E-DDA8-C1D5-13D102E3EA9A"
+  # device_address: "D6531279-6A6E-DDA8-C1D5-13D102E3EA9A" # mac
+  device_address: "A0:9E:1A:EB:ED:38" # windows
   scan_timeout: 10
 
 # Operating mode of the driver

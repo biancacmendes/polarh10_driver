@@ -1,0 +1,14 @@
+{
+  "fileId": "c613fe55-3b7c-499b-9285-d94fd093d705_20260608_185925",
+  "runId": "c613fe55-3b7c-499b-9285-d94fd093d705",
+  "label": "Dashboard Experience",
+  "reason": "ui",
+  "startedAt": "2026-06-08T18:59:19.251777",
+  "finishedAt": "2026-06-08T18:59:25.863103",
+  "numSamples": 0,
+  "numPackets": 0,
+  "sampleRateHz": 130,
+  "ecgFile": "recordings/ecg_raw_c613fe55-3b7c-499b-9285-d94fd093d705_20260608_185925.npy",
+  "packetsFile": "recordings/packets_c613fe55-3b7c-499b-9285-d94fd093d705_20260608_185925.npy",
+  "metadataFile": "recordings/metadata_c613fe55-3b7c-499b-9285-d94fd093d705_20260608_185925.json"
+}
