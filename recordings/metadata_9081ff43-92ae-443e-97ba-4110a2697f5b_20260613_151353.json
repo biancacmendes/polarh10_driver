@@ -1,0 +1,14 @@
+{
+  "fileId": "9081ff43-92ae-443e-97ba-4110a2697f5b_20260613_151353",
+  "runId": "9081ff43-92ae-443e-97ba-4110a2697f5b",
+  "label": "Dashboard Experience",
+  "reason": "ui",
+  "startedAt": "2026-06-13T15:13:39.110548",
+  "finishedAt": "2026-06-13T15:13:53.571546",
+  "numSamples": 949,
+  "numPackets": 13,
+  "sampleRateHz": 130,
+  "ecgFile": "recordings/ecg_raw_9081ff43-92ae-443e-97ba-4110a2697f5b_20260613_151353.npy",
+  "packetsFile": "recordings/packets_9081ff43-92ae-443e-97ba-4110a2697f5b_20260613_151353.npy",
+  "metadataFile": "recordings/metadata_9081ff43-92ae-443e-97ba-4110a2697f5b_20260613_151353.json"
+}
