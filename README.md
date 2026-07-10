@@ -25,7 +25,7 @@ Estruturada sob um modelo de janelas empilhadas (QStackedWidget) gerido pela cla
 
 Abaixo encontra-se a organização completa dos ficheiros do projeto:
 
-.
+```bash
 ├── app
 │   ├── __init__.py
 │   ├── async_worker.py          (Gerenciador do ciclo de vida assíncrono e transições)
@@ -61,6 +61,8 @@ Abaixo encontra-se a organização completa dos ficheiros do projeto:
 ├── requirements.txt             (Lista de dependências e bibliotecas do ecossistema)
 ├── venv_setup.sh                (Script bash para automação do ambiente virtual)
 └── visualize.py                 (Módulo de pós-processamento, filtragem e geração de PDFs)
+```
+
 
 ## Requisitos do Sistema e Dependências
 
