@@ -1,4 +1,5 @@
 # Polar H10 HRV Streaming System
+((venv) ) mendes@mendes-laptop:~/Desktop/bianca/polarh10_driver$ sudo systemctl restart bluetooth
 
 ## Setup (First Step)
 

@@ -9,6 +9,12 @@ venv/
 env/
 ENV/
 
+data_captures/*
+recordings/*
+
+*.npy
+*.json
+
 # Python packaging
 build/
 dist/
