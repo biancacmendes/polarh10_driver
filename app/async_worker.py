@@ -120,7 +120,7 @@ class CoreAsyncWorker(QThread):
             if not self.gateway:
                 continue
 
-            current_state = getattr(self.gateway, "is_recording", None)
+            current_state = getattr(self.gateway, "recording_enabled", None)
 
             if current_state is None and self.polar:
                 current_state = getattr(self.polar, "is_recording", False)

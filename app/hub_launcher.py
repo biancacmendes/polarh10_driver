@@ -18,44 +18,35 @@ class HubLauncher:
         self.processes = []
 
     def _run_headless(self, command, cwd):
+        # Usando bash -c explicitamente para garantir a execução correta do source e encadeamento
         process = subprocess.Popen(
-            command,
+            ["/bin/bash", "-c", command],
             cwd=cwd,
-            shell=True,
-            executable="/bin/bash",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             start_new_session=True,
         )
 
         self.processes.append(process)
-
         return process
 
     def start_hub(self):
-        command = """
-        source .venv/bin/activate
-        biofeedback-hub
-        """
-
+        # Encadeando com && garante que o segundo comando só roda se o ambiente ativar
+        command = "source .venv/bin/activate && biofeedback-hub"
         return self._run_headless(command, self.hub_dir)
 
     def start_polar_bridge(self):
-        command = f"""
-        source .venv/bin/activate
-        biofeedback-polarh10 \\
-            --polar-ws '{self.polar_ws}' \\
-            --polar-control-ws '{self.polar_control_ws}' \\
-            --hub-ws '{self.hub_ws}'
-        """
-
+        # Construção da string em uma única linha limpa para evitar problemas de quebra de escopo
+        command = (
+            f"source .venv/bin/activate && biofeedback-polarh10 "
+            f"--polar-ws '{self.polar_ws}' "
+            f"--polar-control-ws '{self.polar_control_ws}' "
+            f"--hub-ws '{self.hub_ws}'"
+        )
         return self._run_headless(command, self.hub_dir)
 
     def start_dashboard(self):
-        command = """
-        npm run dev:dashboard
-        """
-
+        command = "npm run dev:dashboard"
         return self._run_headless(command, self.project_dir)
 
     def stop_all(self):
@@ -79,7 +70,6 @@ class HubLauncherWorker(QThread):
 
     def __init__(self, hub_launcher, delay_seconds=10):
         super().__init__()
-
         self.hub_launcher = hub_launcher
         self.delay_seconds = delay_seconds
 
@@ -89,34 +79,27 @@ class HubLauncherWorker(QThread):
                 "Iniciando Biofeedback Hub em modo headless...",
                 10,
             )
-
             self.hub_launcher.start_hub()
-
             time.sleep(self.delay_seconds)
 
             self.status_updated.emit(
                 "Iniciando ponte Polar H10 → Hub...",
                 45,
             )
-
             self.hub_launcher.start_polar_bridge()
-
             time.sleep(self.delay_seconds)
 
             self.status_updated.emit(
                 "Iniciando dashboard...",
                 75,
             )
-
             self.hub_launcher.start_dashboard()
-
             time.sleep(2)
 
             self.status_updated.emit(
                 "Biofeedback Hub iniciado com sucesso.",
                 100,
             )
-
             self.finished_successfully.emit()
 
         except Exception as error:
