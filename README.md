@@ -81,27 +81,38 @@ O ficheiro hub_launcher.py possui caminhos absolutos apontando para ~/Desktop/bi
 ### Instalação Automatizada
 O projeto disponibiliza um script em bash que valida o interpretador, cria o ambiente isolado, atualiza os gerenciadores de pacotes e instala as dependências necessárias. Execute-o a partir da raiz do repositório:
 
+```bash
 chmod +x venv_setup.sh
 ./venv_setup.sh
+```
+
 
 ### Instalação Manual
 Caso prefira realizar os passos individualmente no seu terminal:
 
+```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
+```
 
 Se a sua distribuição Linux apresentar erros de timeout ou falhas ao indexar os descritores GATT do sensor Polar H10, limpe o cache do subsistema BlueZ reiniciando o serviço correspondente:
 
+```bash
 sudo systemctl restart bluetooth
+```
+
 
 ## Execução da Plataforma
 
 Para lançar a aplicação visual com todo o encadeamento de páginas e trabalhadores assíncronos em segundo plano, ative o ambiente virtual e execute o ponto de entrada gráfico:
 
+```bash
 source .venv/bin/activate
 python main_interface.py
+```
+
 
 ## Fluxo de Operação e Protocolo Experimental
 
@@ -128,12 +139,15 @@ O armazenamento é estruturado de forma rigorosa pelo StorageManager dentro do d
 
 Os ficheiros gerados utilizam as seguintes nomenclaturas e formatos:
 
+```bash
 data_captures/
 └── Nome_Completo_ID/
     ├── Nome_Completo_ID_Etapa_Fixa_5min_TIMESTAMP_ecg.npy
     ├── Nome_Completo_ID_Etapa_Fixa_5min_TIMESTAMP_hrv.npy
     ├── Nome_Completo_ID_Etapa_Sincronizada_Hub_TIMESTAMP_ecg.npy
     └── Nome_Completo_ID_Etapa_Sincronizada_Hub_TIMESTAMP_hrv.npy
+```
+
 
 Estrutura Interna dos Ficheiros Binários (.npy)
 * Ficheiros ECG: Matriz NumPy bidimensional estruturada em duas colunas [Timestamp UNIX, Valor Bruto ECG em Microvolts]. Contém 130 amostras por segundo de gravação.
@@ -151,6 +165,7 @@ O ecossistema opera com separação de tráfego através de três portas e rotas
 
 Modelo estrutural do payload JSON emitido pelo servidor na rota stream:
 
+```json
 {
   "seq": 2481,
   "samples": [142, 145, 139, 131, 125, 133],
@@ -163,6 +178,7 @@ Modelo estrutural do payload JSON emitido pelo servidor na rota stream:
     "lf_hf": 1.6
   }
 }
+```
 
 ## Módulo de Visualização e Análise Analítica
 
